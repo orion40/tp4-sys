@@ -10,6 +10,7 @@
 
 #define NUM_PHILOSOPHER 7
 #define NUM_EATING 20
+#define NUM_TESTS 1
 
 /* struct: philosophers
  *
@@ -48,29 +49,56 @@ void* philosopher (void* args){
     return NULL;
 }
 
+void usage (char* prog){
+    printf("Usage: %s <num of philisopher> <num of forks> <num of tests>\n"
+            , prog);
+    exit(0);
+}
+
 int main(int argc, char* argv[]){
-    pthread_t threads[NUM_PHILOSOPHER];
-    philosophers* p[NUM_PHILOSOPHER];
+    int num_philosopher = NUM_PHILOSOPHER;
+    int food_quantity = NUM_EATING;
+    int num_of_tests = NUM_TESTS;
+    switch (argc){
+        case 4:
+            num_of_tests = atoi(argv[3]);
+        case 3:
+            food_quantity = atoi(argv[2]);
+        case 2:
+            num_philosopher = atoi(argv[1]);
+            break;
+        default:
+            usage(argv[0]);
+            break;
+    }
+    pthread_t threads[num_philosopher];
+    philosophers* p[num_philosopher];
     fourchettes f;
 
-    fourchettes_init(&f, NUM_PHILOSOPHER);
+    fourchettes_init(&f, num_philosopher);
 
-    for (int i = 0; i < NUM_PHILOSOPHER; i++){
+    for (int i = 0; i < num_philosopher; i++){
         p[i] = (philosophers*) malloc(sizeof(philosophers));
         p[i]->f_t = &f;
-        p[i]->reste = NUM_EATING;
+        p[i]->reste = food_quantity;
         p[i]->place = i;
     }
 
     fourchettes_print(&f);
-    for (int i = 0; i < NUM_PHILOSOPHER; i++){
+    for (int i = 0; i < num_philosopher; i++){
         pthread_create(&threads[i], NULL, philosopher, p[i]);
     }
 
-    for (int i = 0; i < NUM_PHILOSOPHER; i++){
+    for (int i = 0; i < num_philosopher; i++){
         pthread_join(threads[i], NULL);
     }
     fourchettes_print(&f);
+    if (fourchettes_all_free(&f)){
+        printf("Toutes les fourchettes ont été libérées.\n");
+    }else {
+        printf("Erreur, des fourchettes n'ont pas été libérées.\n");
+        exit(1);
+    }
 
     fourchettes_destroy(&f);
- }
+}

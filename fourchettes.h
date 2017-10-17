@@ -23,3 +23,4 @@ void fourchettes_destroy(fourchettes* f);
 void fourchettes_prendre(fourchettes* f, int place);
 void fourchettes_lacher(fourchettes* f, int place);
 void fourchettes_print(fourchettes* f);
+bool fourchettes_all_free(fourchettes* f);
