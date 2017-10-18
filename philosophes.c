@@ -24,20 +24,21 @@ typedef struct{
 }philosophers;
 
 void think(){
-    pid_t tid = pthread_self();
-    printf("Philosopher %x is thinking...\n", tid);
+    //pid_t tid = pthread_self();
+    //printf("Philosopher %x is thinking...\n", tid);
     usleep(rand() % 1000000);
-    printf("Philosopher %x stopped thinking.\n", tid);
+    //printf("Philosopher %x stopped thinking.\n", tid);
 }
 
 void eat(philosophers* p){
-    pid_t tid = pthread_self();
-    printf("Philosopher %x is eating (%d left)...\n", tid, p->reste);
+    //pid_t tid = pthread_self();
+    //printf("Philosopher %x is eating (%d left)...\n", tid, p->reste);
     usleep(rand() % 1000000);
-    printf("Philosopher %x stopped eating.\n", tid);
+    //printf("Philosopher %x stopped eating.\n", tid);
 }
 
 void* philosopher (void* args){
+    pid_t tid = pthread_self();
     philosophers *p = (philosophers *)args;
     for (; p->reste >= 0; p->reste--){
         think();
@@ -45,6 +46,7 @@ void* philosopher (void* args){
         eat(p);
         fourchettes_lacher(p->f_t, p->place);
     }
+    printf("Philosopher %x has finished eating.\n", tid);
 
     return NULL;
 }
@@ -77,28 +79,33 @@ int main(int argc, char* argv[]){
 
     fourchettes_init(&f, num_philosopher);
 
-    for (int i = 0; i < num_philosopher; i++){
-        p[i] = (philosophers*) malloc(sizeof(philosophers));
-        p[i]->f_t = &f;
-        p[i]->reste = food_quantity;
-        p[i]->place = i;
-    }
+    for (int num_test = 0; num_test < num_of_tests; num_test++){
+        for (int i = 0; i < num_philosopher; i++){
+            p[i] = (philosophers*) malloc(sizeof(philosophers));
+            p[i]->f_t = &f;
+            p[i]->reste = food_quantity;
+            p[i]->place = i;
+        }
 
-    fourchettes_print(&f);
-    for (int i = 0; i < num_philosopher; i++){
-        pthread_create(&threads[i], NULL, philosopher, p[i]);
-    }
+        //fourchettes_print(&f);
+        for (int i = 0; i < num_philosopher; i++){
+            pthread_create(&threads[i], NULL, philosopher, p[i]);
+        }
 
-    for (int i = 0; i < num_philosopher; i++){
-        pthread_join(threads[i], NULL);
-    }
-    fourchettes_print(&f);
-    if (fourchettes_all_free(&f)){
-        printf("Toutes les fourchettes ont été libérées.\n");
-    }else {
-        printf("Erreur, des fourchettes n'ont pas été libérées.\n");
-        exit(1);
+        for (int i = 0; i < num_philosopher; i++){
+            pthread_join(threads[i], NULL);
+        }
+        //fourchettes_print(&f);
+        if (fourchettes_all_free(&f)){
+            printf("Toutes les fourchettes ont été libérées.\n");
+        }else {
+            printf("Erreur, des fourchettes n'ont pas été libérées.\n");
+            exit(1);
+        }
     }
 
     fourchettes_destroy(&f);
+    for (int i = 0; i < num_philosopher; i++){
+        free (p[i]);
+    }
 }
